@@ -505,8 +505,8 @@ function pager($rpp, $count, $href, $opts = array()) {
     }
 
     if ($page < $mp && $mp >= 1) {
-      $pager .= "\n&nbsp;<span class=\"pager\"><a href=\"{$href}$pagename = ".($page+1)."\">&nbsp;&gt;</a></span>";
-      $pager .= "\n&nbsp;<span class=\"pager\"><a href=\"{$href}$pagename = $pages\">&nbsp;&raquo;</a></span>";
+      $pager .= "\n&nbsp;<span class=\"pager\"><a href=\"{$href}$pagename=".($page+1)."\">&nbsp;&gt;</a></span>";
+      $pager .= "\n&nbsp;<span class=\"pager\"><a href=\"{$href}$pagename=$pages\">&nbsp;&raquo;</a></span>";
     }
 
     $pagertop = "$pager\n</form>";
@@ -981,22 +981,22 @@ function DateFormat($seconds) {
     $seconds -= 2419200;
     }
 
-  while ($seconds>604800) {
+  while ($seconds > 604800) {
     $weeks++;
     $seconds -= 604800;
     }
 
-  while ($seconds>86400) {
+  while ($seconds > 86400) {
     $days++; 
     $seconds -= 86400;
     }
 
-  while ($seconds>3600) {
+  while ($seconds > 3600) {
     $hours++; 
     $seconds -= 3600;
     }
 
-  while ($seconds>60) {
+  while ($seconds > 60) {
     $minutes++; 
     $seconds -= 60;
     }
