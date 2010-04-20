@@ -101,7 +101,7 @@ switch ($action)
             }
             else
               {
-              $btit_settings["xbtt_use"]=isset($_POST["xbtt_use"])?"true":"false";
+              $btit_settings["xbtt_use"]="true";
               $admintpl->set("xbtt_error",false,true);
               // save some settings into xbt_config table
               $xbt_cfg="('anonymous_announce','anonymous_scrape','announce_interval','auto_register')";
