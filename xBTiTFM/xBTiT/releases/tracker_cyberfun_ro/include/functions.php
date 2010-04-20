@@ -298,7 +298,7 @@ function warn($arr, $big = false)
      $style = "style=\"margin-left: 2pt\"";
   }
 
-  $pics = $arr["warn"]=="yes" ? "<img src=\"images/$warnpic\" alt=\"WARNED USER !\" border=\"0\" $style />" : "";
+  $pics = $arr["warn"] == "yes" ? "<img src=\"images/$warnpic\" alt=\"WARNED USER !\" border=\"0\" $style />" : "";
 
   return $pics;
 }
@@ -434,7 +434,7 @@ function updatedata() {
     return;
 
   $res = do_sqlquery("SELECT announce_url FROM {$TABLE_PREFIX}files WHERE external='yes' ORDER BY lastupdate ASC LIMIT 1");
-  if (!$res || mysql_num_rows($res)==0)
+  if (!$res || mysql_num_rows($res) == 0)
     return;
 
   // get the url to scrape, take 5 torrent at a time (try to getting multiscrape)
@@ -464,7 +464,7 @@ function pager($rpp, $count, $href, $opts = array()) {
       $pagedefault = 1;
   }
 
-  $pagename='pages';
+  $pagename = 'pages';
 
   if (isset($opts['pagename'])) {
     $pagename = $opts['pagename'];
@@ -537,7 +537,7 @@ function genrelist() {
 function categories($val = '') {
   global $TABLE_PREFIX, $CACHE_DURATION;
 
-  $return="\n".'<select name="category"><option value="0">----</option>';
+  $return = "\n".'<select name="category"><option value="0">----</option>';
 
   $c_q = get_result("SELECT c.id, c.name, sc.id as sid, sc.name as sname FROM {$TABLE_PREFIX}categories c LEFT JOIN {$TABLE_PREFIX}categories sc on c.id=sc.sub where c.sub='0' ORDER BY c.sort_index, sc.sort_index, c.id, sc.id", true, $CACHE_DURATION);
   $b_sub = 0;
@@ -719,14 +719,14 @@ function success_msg($heading = 'Success!', $string, $close = false) {
   $tpl->set('main_content', set_block($heading,'center', $suc_tpl->fetch(load_template('success.tpl'))));
 }
 
-function err_msg($heading = 'Error!', $string, $close=false) {
-  global $language, $STYLEPATH, $tpl, $page,$STYLEURL;
+function err_msg($heading = 'Error!', $string, $close = false) {
+  global $language, $STYLEPATH, $tpl, $page, $STYLEURL;
 
   // just in case not found the language
   if (!$language['BACK'])
     $language['BACK'] = 'Back';
 
-  $err_tpl=new bTemplate();
+  $err_tpl = new bTemplate();
   $err_tpl->set('error_title', $heading);
   $err_tpl->set('error_message', $string);
   $err_tpl->set('error_image', $STYLEURL.'/images/error.gif');
@@ -739,13 +739,13 @@ function err_msg($heading = 'Error!', $string, $close=false) {
   $tpl->set('main_content', set_block($heading, 'center', $err_tpl->fetch(load_template('error.tpl'))));
 }
 
-function information_msg($heading = 'Error!', $string, $close=false) {
+function information_msg($heading = 'Error!', $string, $close = false) {
   global $language, $STYLEPATH, $tpl, $page, $STYLEURL;
   // just in case not found the language
   if (!$language['BACK'])
     $language['BACK'] = 'Back';
 
-  $err_tpl=new bTemplate();
+  $err_tpl = new bTemplate();
   $err_tpl->set('information_title', $heading);
   $err_tpl->set('information_message', $string);
   $err_tpl->set('information_image', $STYLEURL.'/images/error.gif');
@@ -792,17 +792,17 @@ function set_block($block_title, $alignement, $block_content, $width100 = true) 
 function get_block($block_title, $alignement, $block, $use_cache = true, $width100 = true) {
   global $STYLEPATH, $TABLE_PREFIX, $language, $CACHE_DURATION, $CURUSER;
 
-  $blocktpl=new bTemplate();
+  $blocktpl = new bTemplate();
   $blocktpl->set('block_width',($width100?'width="100%"':''));
   $blocktpl->set('block_title',$block_title);
   $blocktpl->set('block_align',$alignement);
 
   $cache_file = realpath(dirname(__FILE__).'/..').'/cache/'.md5($block.$CURUSER['id_level']).'.txt';
-  $use_cache = ($use_cache)?$CACHE_DURATION > 0:false;
+  $use_cache = ($use_cache) ? $CACHE_DURATION > 0:false;
     
   if ($use_cache) {
     // read cache
-    if (file_exists($cache_file) && (time()-$CACHE_DURATION) < filemtime($cache_file)) {
+    if (file_exists($cache_file) && (time() - $CACHE_DURATION) < filemtime($cache_file)) {
       $blocktpl->set('block_content', file_get_contents($cache_file));
       return $blocktpl->fetch(load_template('block.tpl'));
         }
@@ -894,7 +894,7 @@ function is_valid_id($id) {
 
 function get_date_time($timestamp = 0) {
   if ($timestamp)
-    return date('d/m/Y H:i:s', $timestamp-$offset);
+    return date('d/m/Y H:i:s', $timestamp - $offset);
 
   global $CURRENTPATH;
   include $CURRENTPATH.'/offset.php';
@@ -1013,7 +1013,7 @@ function DateFormat($seconds) {
 
 function smf_passgen($username, $pwd) {
   $passhash = sha1(strtolower($username) . $pwd);
-  $salt=substr(md5(rand()), 0, 4);
+  $salt = substr(md5(rand()), 0, 4);
 
   return array($passhash, $salt);
 }
