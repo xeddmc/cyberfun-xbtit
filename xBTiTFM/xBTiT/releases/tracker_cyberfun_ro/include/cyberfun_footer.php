@@ -8,15 +8,17 @@ document.write(unescape(\"%3Cscript src='\" + gaJsHost + \"google-analytics.com/
 try {
 var pageTracker = _gat._getTracker(\"UA-6249398-4\");
 pageTracker._trackPageview();
-} catch(err) {}</script>
+} catch(err) {}</script>\n
+<!-- Piwik -->
 <script type=\"text/javascript\">
-var pkBaseURL = ((\"https:\" == document.location.protocol) ? \"https://sourceforge.net/apps/piwik/xlist/\" : \"http://sourceforge.net/apps/piwik/xlist/\");
+var pkBaseURL = ((\"https:\" == document.location.protocol) ? \"https://stats.xdns.ro/\" : \"http://stats.xdns.ro/\");
 document.write(unescape(\"%3Cscript src='\" + pkBaseURL + \"piwik.js' type='text/javascript'%3E%3C/script%3E\"));
 </script><script type=\"text/javascript\">
-piwik_action_name = '';
-piwik_idsite = 4;
-piwik_url = pkBaseURL + \"piwik.php\";
-piwik_log(piwik_action_name, piwik_idsite, piwik_url);
-</script>
-<object><noscript><p><img src=\"http://sourceforge.net/apps/piwik/xlist/piwik.php?idsite=4\" alt=\"piwik\"/></p></noscript></object>";
+try {
+var piwikTracker = Piwik.getTracker(pkBaseURL + \"piwik.php\", 3);
+piwikTracker.trackPageView();
+piwikTracker.enableLinkTracking();
+} catch( err ) {}
+</script><noscript><p><img src=\"http://stats.xdns.ro/piwik.php?idsite=3\" style=\"border:0\" alt=\"\"/></p></noscript>
+<!-- End Piwik Tag -->";
 ?>
