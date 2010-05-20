@@ -38,7 +38,7 @@ if ($BASEURL != $domain) {
 
 $time_start = get_microtime();
 
-//require_once ("$THIS_BASEPATH/include/config.php");
+// require_once ("$THIS_BASEPATH/include/config.php");
 
 dbconn(true);
 
@@ -46,7 +46,7 @@ dbconn(true);
 // get user's style
 
 if ($btit_settings["style"] == "true") {
-$test = do_sqlquery("SELECT * FROM {$TABLE_PREFIX}users_level where id=".$CURUSER["id_level"]."");
+$test = do_sqlquery("SELECT * FROM {$TABLE_PREFIX}style where id=".$CURUSER["style"]." LIMIT 1",TRUE,$btit_settings["cache_duration"]);
 $testt = mysql_fetch_array($test);
 
 $resheet = do_sqlquery("SELECT * FROM {$TABLE_PREFIX}style where id=".$testt["STYLE"]."");   }
@@ -62,25 +62,25 @@ if (!$resheet)
 }
 else
     {
-        $resstyle=mysql_fetch_array($resheet);
-        $STYLEPATH="$THIS_BASEPATH/".$resstyle["style_url"];
-        $STYLEURL="$BASEURL/".$resstyle["style_url"];
+        $resstyle = mysql_fetch_array($resheet);
+        $STYLEPATH = "$THIS_BASEPATH/".$resstyle["style_url"];
+        $STYLEURL = "$BASEURL/".$resstyle["style_url"];
 }
 
-$style_css=load_css("main.css");
+$style_css = load_css("main.css");
 
 
-$idlang=intval($_GET["language"]);
+$idlang = intval($_GET["language"]);
 
-$pageID=(isset($_GET["page"])?$_GET["page"]:"");
+$pageID = (isset($_GET["page"])?$_GET["page"]:"");
 
-$no_columns=(isset($_GET["nocolumns"]) && intval($_GET["nocolumns"])==1?true:false);
+$no_columns = (isset($_GET["nocolumns"]) && intval($_GET["nocolumns"])==1?true:false);
 
 // getting user language
-if ($idlang==0)
-   $reslang=do_sqlquery("SELECT * FROM {$TABLE_PREFIX}language WHERE id=".$CURUSER["language"]);
+if ($idlang == 0)
+   $reslang = do_sqlquery("SELECT * FROM {$TABLE_PREFIX}language WHERE id=".$CURUSER["language"]." LIMIT 1",TRUE,$btit_settings["cache_duration"]);
 else
-   $reslang=do_sqlquery("SELECT * FROM {$TABLE_PREFIX}language WHERE id=$idlang");
+   $reslang = do_sqlquery("SELECT * FROM {$TABLE_PREFIX}language WHERE id=$idlang"." LIMIT 1",TRUE,$btit_settings["cache_duration"]);
 
 if (!$reslang)
    {
@@ -157,7 +157,7 @@ switch ($pageID) {
 
     case 'modules':
         $module_name = htmlspecialchars($_GET["module"]);
-        $modules = get_result("SELECT * FROM {$TABLE_PREFIX}modules WHERE name=".sqlesc($module_name), true, $btit_settings["cache"]);
+        $modules = get_result("SELECT * FROM {$TABLE_PREFIX}modules WHERE name=".sqlesc($module_name)." LIMIT 1",true,$btit_settings["cache_duration"]);
         if (count($modules) < 1) // MODULE NOT SET
            stderr($language["ERROR"],$language["MODULE_NOT_PRESENT"]);
 

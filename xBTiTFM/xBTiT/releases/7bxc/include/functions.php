@@ -439,7 +439,7 @@ function print_designer() {
      $CyBerFuN_xBTiT_version = '' . $CyBerFuN_xBTiT_version . '';
      $design_copyright = '' . $design_copyright . '';
   } else
-     $CyBerFuN_xBTiT_version = 'v1.1.2 ( 7bxc release rev265 )';
+     $CyBerFuN_xBTiT_version = 'v1.2 ( 7bxc release rev481 )';
      $design_copyright = '[&nbsp;&nbsp;<u>CyBerFuN xBTiT ' . $CyBerFuN_xBTiT_version . ' By cybernet</u>: <a href="http://xList.ro/" target="_blank">xList Tracker</a>&nbsp;]<br /> [&nbsp;&nbsp;<u>xbtit '.$tracker_version.' By <a href="http://www.btiteam.org/" target="_blank">BTiTeam.org</a></u>&nbsp;]<br />';
   return $design_copyright;
 }
@@ -452,7 +452,7 @@ function check_online($session_id, $location) {
 
   $location = sqlesc($location);
   $ip = getip();
-  $uid = max(0,$CURUSER['uid']);
+  $uid = max(1,(int)$CURUSER['uid']);
   $suffix = sqlesc($CURUSER['suffixcolor']);
   $prefix = sqlesc($CURUSER['prefixcolor']);
   $uname = sqlesc($CURUSER['username']);
@@ -471,7 +471,8 @@ function check_online($session_id, $location) {
   }
 
   $timeout = time() - 900; // 15 minutes
-  @quickQuery("UPDATE {$TABLE_PREFIX}users SET lastconnect=NOW() WHERE id IN (SELECT user_id FROM {$TABLE_PREFIX}online ol WHERE ol.lastaction<$timeout AND ol.user_id>1)");
+//  @quickQuery("UPDATE {$TABLE_PREFIX}users SET lastconnect=NOW() WHERE id IN (SELECT user_id FROM {$TABLE_PREFIX}online ol WHERE ol.lastaction<$timeout AND ol.user_id>1)");
+  @quickQuery("UPDATE {$TABLE_PREFIX}users u INNER JOIN {$TABLE_PREFIX}online ol ON ol.user_id = u.id SET u.lastconnect=NOW(), u.cip=ol.user_ip, u.lip=INET_ATON(ol.user_ip) WHERE ol.lastaction<$timeout AND ol.user_id>1");
   @quickQuery("DELETE FROM {$TABLE_PREFIX}online WHERE lastaction<$timeout");
 }
 
@@ -547,16 +548,17 @@ function warn($arr, $big = false)
   return $pics;
 }
 
+
       
 
 function userlogin() {
-  global $CURUSER, $TABLE_PREFIX, $err_msg_install;
+  global $CURUSER, $TABLE_PREFIX, $err_msg_install, $btit_settings;
   unset($GLOBALS['CURUSER']);
 
   $ip = getip(); //$_SERVER["REMOTE_ADDR"];
   $nip = ip2long($ip);
-  $res = do_sqlquery("SELECT * FROM {$TABLE_PREFIX}bannedip WHERE $nip >= first AND $nip <= last LIMIT 1;") or sqlerr(__FILE__, __LINE__);
-  if (mysql_num_rows($res) > 0) {
+  $res = get_result("SELECT * FROM {$TABLE_PREFIX}bannedip WHERE INET_ATON('".$ip."') >= first AND INET_ATON('".$ip."') <= last LIMIT 1;",true,$btit_settings['cache_duration']);
+  if (count($res) > 0) {
     header('HTTP/1.0 403 Forbidden');
 ?>
 <html><body><h1>403 Forbidden</h1>Unauthorized IP address.</body></html>
@@ -564,24 +566,38 @@ function userlogin() {
     die();
   }
 // guest
-    $id = (!isset($_COOKIE['uid']))?1:max(1, $_COOKIE['uid']);
+    $id = (!isset($_COOKIE['uid']))?1:max(1, (int)$_COOKIE['uid']);
 
-  $res = do_sqlquery("SELECT u.dlrandom, u.warn, u.smf_fid, u.topicsperpage, u.postsperpage,u.torrentsperpage, u.flag, u.avatar, UNIX_TIMESTAMP(u.lastconnect) AS lastconnect, UNIX_TIMESTAMP(u.joined) AS joined, u.id as uid, u.username, u.password, u.random, u.email, u.language,u.style, u.time_offset, ul.* FROM {$TABLE_PREFIX}users u INNER JOIN {$TABLE_PREFIX}users_level ul ON u.id_level=ul.id WHERE u.id = $id LIMIT 1;") or sqlerr(__FILE__, __LINE__);
+if ($btit_settings['xbtt_use'])
+  {
+    $udownloaded="u.downloaded+IFNULL(x.downloaded,0)";
+    $uuploaded="u.uploaded+IFNULL(x.uploaded,0)";
+    $utables="{$TABLE_PREFIX}users u LEFT JOIN xbt_users x ON x.uid=u.id";
+  }
+  else
+  {
+    $udownloaded="u.downloaded";
+    $uuploaded="u.uploaded";
+    $utables="{$TABLE_PREFIX}users u";
+  }
+
+  $res = get_result("SELECT u.lip, u.cip, $udownloaded as downloaded, $uuploaded as uploaded, u.dlrandom, u.warn, u.smf_fid, u.topicsperpage, u.postsperpage,u.torrentsperpage, u.flag, u.avatar, UNIX_TIMESTAMP(u.lastconnect) AS lastconnect, UNIX_TIMESTAMP(u.joined) AS joined, u.id as uid, u.username, u.password, u.random, u.email, u.language,u.style, u.time_offset, ul.* FROM {$TABLE_PREFIX}users u INNER JOIN {$TABLE_PREFIX}users_level ul ON u.id_level=ul.id WHERE u.id = $id LIMIT 1;",true,$btit_settings['cache_duration']);
   $row = mysql_fetch_array($res);
   if (!$row) {
     $id = 1;
-    $res = do_sqlquery("SELECT u.dlrandom, u.warn, u.smf_fid, u.topicsperpage, u.postsperpage,u.torrentsperpage, u.flag, u.avatar, UNIX_TIMESTAMP(u.lastconnect) AS lastconnect, UNIX_TIMESTAMP(u.joined) AS joined, u.id as uid, u.username, u.password, u.random, u.email, u.language,u.style, u.time_offset, ul.* FROM {$TABLE_PREFIX}users u INNER JOIN {$TABLE_PREFIX}users_level ul ON u.id_level=ul.id WHERE u.id = 1 LIMIT 1;") or sqlerr(__FILE__, __LINE__);
+    $res = get_result("SELECT u.lip, u.cip, u.dlrandom, u.warn, u.downloaded, u.uploaded, u.smf_fid, u.topicsperpage, u.postsperpage,u.torrentsperpage, u.flag, u.avatar, UNIX_TIMESTAMP(u.lastconnect) AS lastconnect, UNIX_TIMESTAMP(u.joined) AS joined, u.id as uid, u.username, u.password, u.random, u.email, u.language,u.style, u.time_offset, ul.* FROM {$TABLE_PREFIX}users u INNER JOIN {$TABLE_PREFIX}users_level ul ON u.id_level=ul.id WHERE u.id = 1 LIMIT 1;",true,$btit_settings['cache_duration']);
     $row = mysql_fetch_array($res);
   }
   if (!isset($_COOKIE['pass'])) $_COOKIE['pass'] = '';
   if (($_COOKIE['pass'] != md5($row['random'].$row['password'].$row['random'])) && $id != 1) {
     $id = 1;
-    $res = do_sqlquery("SELECT u.dlrandom, u.warn, u.smf_fid, u.topicsperpage, u.postsperpage,u.torrentsperpage, u.flag, u.avatar, UNIX_TIMESTAMP(u.lastconnect) AS lastconnect, UNIX_TIMESTAMP(u.joined) AS joined, u.id as uid, u.username, u.password, u.random, u.email, u.language,u.style, u.time_offset, ul.* FROM {$TABLE_PREFIX}users u INNER JOIN {$TABLE_PREFIX}users_level ul ON u.id_level=ul.id WHERE u.id = 1 LIMIT 1;") or sqlerr(__FILE__, __LINE__);
+    $res = get_result("SELECT u.lip, u.cip, u.dlrandom, u.warn, u.downloaded, u.uploaded, u.smf_fid, u.topicsperpage, u.postsperpage,u.torrentsperpage, u.flag, u.avatar, UNIX_TIMESTAMP(u.lastconnect) AS lastconnect, UNIX_TIMESTAMP(u.joined) AS joined, u.id as uid, u.username, u.password, u.random, u.email, u.language,u.style, u.time_offset, ul.* FROM {$TABLE_PREFIX}users u INNER JOIN {$TABLE_PREFIX}users_level ul ON u.id_level=ul.id WHERE u.id = 1 LIMIT 1;",true,$btit_settings['cache_duration']);
     $row = mysql_fetch_array($res);
   }
-
+/* this part is now updated by check_online function
   if ($id > 1)
     quickQuery("UPDATE {$TABLE_PREFIX}users SET lip=".$nip.", cip='".AddSlashes($ip)."' WHERE id = $id") or sqlerr(__FILE__, __LINE__);
+*/
 
   // CHECK FOR INSTALLATION FOLDER WITHOUT INSTALL.ME
   if ($row['id_level'] == 8 && (file_exists('install.php') || file_exists('upgrade.php'))) // only owner level
@@ -625,7 +641,7 @@ if($GLOBALS["charset"] == "UTF-8")
 }
 
 function cleandata() {
-  global $CURRENTPATH, $TABLE_PREFIX;
+  global $CURRENTPATH, $TABLE_PREFIX, $btit_settings;
 
   global $clean_interval;
 
@@ -633,13 +649,13 @@ function cleandata() {
     return;
 
   $now = time();
-  $res = do_sqlquery("SELECT last_time FROM {$TABLE_PREFIX}tasks WHERE task='sanity'");
-  $row = mysql_fetch_array($res);
+  $res = get_result("SELECT last_time as lt FROM {$TABLE_PREFIX}tasks WHERE task='sanity'",true,$btit_settings['cache_duration']);
+  $row = $res[0];
   if (!$row) {
     do_sqlquery("INSERT INTO {$TABLE_PREFIX}tasks (task, last_time) VALUES ('sanity', $now)");
     return;
   }
-  $ts = $row[0];
+  $ts = $row['lt'];
   if ($ts + $clean_interval > $now)
     return;
   do_sqlquery("UPDATE {$TABLE_PREFIX}tasks SET last_time=$now WHERE task='sanity' AND last_time = $ts");
@@ -651,7 +667,7 @@ function cleandata() {
 }
 
 function updatedata() {
-  global $CURRENTPATH, $TABLE_PREFIX;
+  global $CURRENTPATH, $TABLE_PREFIX, $btit_settings;
 
   require_once $CURRENTPATH.'/getscrape.php';
   global $update_interval;
@@ -661,13 +677,13 @@ function updatedata() {
 
   $now = time();
 
-  $res = do_sqlquery("SELECT last_time FROM {$TABLE_PREFIX}tasks WHERE task='update'");
+  $res = get_result("SELECT last_time as lt FROM {$TABLE_PREFIX}tasks WHERE task='update'",true,$btit_settings['cache_duration']);
   $row = @mysql_fetch_array($res);
   if (!$row) {
     do_sqlquery("INSERT INTO {$TABLE_PREFIX}tasks (task, last_time) VALUES ('update', $now)");
     return;
   }
-  $ts = $row[0];
+  $ts = $row['lt'];
   if ($ts + $update_interval > $now)
     return;
 
@@ -675,19 +691,19 @@ function updatedata() {
   if (!mysql_affected_rows())
     return;
 
-  $res = do_sqlquery("SELECT announce_url FROM {$TABLE_PREFIX}files WHERE external='yes' ORDER BY lastupdate ASC LIMIT 1");
-  if (!$res || mysql_num_rows($res) == 0)
+  $res = get_result("SELECT announce_url FROM {$TABLE_PREFIX}files WHERE external='yes' ORDER BY lastupdate ASC LIMIT 1",true,$btit_settings['cache_duration']);
+  if (!$res || count($res) == 0)
     return;
 
   // get the url to scrape, take 5 torrent at a time (try to getting multiscrape)
-  $row = mysql_fetch_row($res);
-  $resurl = do_sqlquery("SELECT info_hash FROM {$TABLE_PREFIX}files WHERE external='yes' AND announce_url='".$row[0]."' ORDER BY lastupdate ASC LIMIT 5");
-  if (!$resurl || mysql_num_rows($resurl) == 0)
+  $row = $res[0];
+  $resurl = get_result("SELECT info_hash FROM {$TABLE_PREFIX}files WHERE external='yes' AND announce_url='".$row['announce_url']."' ORDER BY lastupdate ASC LIMIT 5",true,$btit_settings['cache_duration']);
+  if (!$resurl || count($resurl) == 0)
     return
 
   $combinedinfohash = array();
-  while ($rhash = mysql_fetch_row($resurl))
-    $combinedinfohash[] = $rhash[0];
+  foreach ($resurl as $id=> $rhash)
+    $combinedinfohash[] = $rhash['info_hash'];
 
   //scrape($row["announce_url"],$row["info_hash"]);
   scrape($row[0],implode("','",$combinedinfohash));
@@ -825,9 +841,9 @@ function sub_categories($val = '') {
 
 // this returns the category of a sub-category
 function sub_cat($sub) {
-  global $TABLE_PREFIX;
+  global $TABLE_PREFIX, $CACHE_DURATION;
 
-  $c_q = @mysql_fetch_assoc(do_sqlquery('SELECT name FROM '.$TABLE_PREFIX.'categories WHERE id='.$sub.' LIMIT 1;') );
+  $c_q = get_result('SELECT name FROM '.$TABLE_PREFIX.'categories WHERE id='.$sub.' LIMIT 1;',true,$CACHE_DURATION);
   return unesc($c_q['name']);
 }
 

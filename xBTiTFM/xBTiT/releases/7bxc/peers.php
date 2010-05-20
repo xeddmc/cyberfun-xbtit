@@ -61,7 +61,8 @@ $res = do_sqlquery("SELECT size FROM {$TABLE_PREFIX}files WHERE info_hash='$id'"
 $res = do_sqlquery("SELECT filename, size FROM {$TABLE_PREFIX}files WHERE info_hash='$id'") or die(mysql_error());
 
     # End       
-    ################################################################################################
+    ################################################################################################
+
 if ($res) {
    $row = mysql_fetch_array($res);
    if ($row) {
@@ -85,9 +86,9 @@ else
     die("Error ID");
 
 if ($XBTT_USE)
-   $res = mysql_query("SELECT x.uid,x.completed, x.downloaded, x.uploaded, x.left as bytes, IF(x.left=0,'seeder','leecher') as status, x.mtime as lastupdate, u.username, u.flag, c.flagpic, c.name FROM xbt_files_users x LEFT JOIN xbt_files ON x.fid=xbt_files.fid LEFT JOIN {$TABLE_PREFIX}files f ON f.bin_hash=xbt_files.info_hash LEFT JOIN {$TABLE_PREFIX}users u ON u.id=x.uid LEFT JOIN {$TABLE_PREFIX}countries c ON u.flag=c.id WHERE f.info_hash='$id' AND active=1 ORDER BY status DESC, lastupdate DESC") or die(mysql_error());
+   $res = do_sqlquery("SELECT x.uid,x.completed, x.downloaded, x.uploaded, x.left as bytes, IF(x.left=0,'seeder','leecher') as status, x.mtime as lastupdate, u.username, u.flag, c.flagpic, c.name FROM xbt_files_users x LEFT JOIN xbt_files ON x.fid=xbt_files.fid LEFT JOIN {$TABLE_PREFIX}files f ON f.bin_hash=xbt_files.info_hash LEFT JOIN {$TABLE_PREFIX}users u ON u.id=x.uid LEFT JOIN {$TABLE_PREFIX}countries c ON u.flag=c.id WHERE f.info_hash='$id' AND active=1 ORDER BY status DESC, lastupdate DESC",true,$btit_settings['cache_duration']);
 else
-    $res = do_sqlquery("SELECT * FROM {$TABLE_PREFIX}peers p LEFT JOIN {$TABLE_PREFIX}countries c ON p.dns=c.domain WHERE infohash='$id' ORDER BY bytes ASC, status DESC") or die(mysql_error());
+    $res = do_sqlquery("SELECT * FROM {$TABLE_PREFIX}peers p LEFT JOIN {$TABLE_PREFIX}countries c ON p.dns=c.domain WHERE infohash='$id' ORDER BY bytes ASC, status DESC",true,$btit_settings['cache_duration']);
 
 require(load_language("lang_peers.php"));
 
@@ -95,15 +96,15 @@ $peerstpl = new bTemplate();
 $peerstpl->set("language", $language);
 $peerstpl->set("peers_script", "index.php");
 
-while ($row = mysql_fetch_array($res))
+foreach ($res as $id=>$row)
 {
   // for user name instead of peer
  if ($XBTT_USE)
     $resu = TRUE;
  elseif ($PRIVATE_ANNOUNCE)
-    $resu = do_sqlquery("SELECT u.username,u.id,c.flagpic,c.name FROM {$TABLE_PREFIX}users u LEFT JOIN {$TABLE_PREFIX}countries c ON c.id=u.flag WHERE u.pid='".$row["pid"]."'");
+    $resu = do_sqlquery("SELECT u.username,u.id,c.flagpic,c.name FROM {$TABLE_PREFIX}users u LEFT JOIN {$TABLE_PREFIX}countries c ON c.id=u.flag WHERE u.pid='".$row["pid"]."' LIMIT 1",true,$btit_settings['cache_duration']);
  else
-    $resu = do_sqlquery("SELECT u.username,u.id,c.flagpic,c.name FROM {$TABLE_PREFIX}users u LEFT JOIN {$TABLE_PREFIX}countries c ON c.id=u.flag WHERE u.cip='".$row["ip"]."'");
+    $resu = do_sqlquery("SELECT u.username,u.id,c.flagpic,c.name FROM {$TABLE_PREFIX}users u LEFT JOIN {$TABLE_PREFIX}countries c ON c.id=u.flag WHERE u.cip='".$row["ip"]."' LIMIT 1",true,$btit_settings['cache_duration']);
 
  if ($resu)
     {
@@ -112,11 +113,11 @@ while ($row = mysql_fetch_array($res))
         $rowuser["username"] = $row["username"];
         $rowuser["id"] = $row["uid"];
         $rowuser["flagpic"] = $row["flagpic"];
-        $rowuser["name"]=$row["name"];
+        $rowuser["name"] = $row["name"];
     }
 else
     {
-    $rowuser = mysql_fetch_assoc($resu);
+    $rowuser = $resu[0];
     if ($rowuser && $rowuser["id"] > 1)
       {
       if ($GLOBALS["usepopup"]){
@@ -195,18 +196,18 @@ else $color = "";
 
 	
 
-//Peer Ratio
+// Peer Ratio
   if (intval($row["downloaded"]) > 0) {
      $ratio = number_format($row["uploaded"] / $row["downloaded"], 2);}
-  else {$ratio = '&#8734;';}
+  else { $ratio = '&#8734;'; }
   $peers[$i]["RATIO"] = $ratio;
-//End Peer Ratio
+// End Peer Ratio
 
   $peers[$i]["SEEN"] = get_elapsed_time($row["lastupdate"])." ago";
 $i++;
 }
 
-if (mysql_num_rows($res) == 0)
+if (count($res) == 0)
   $peerstpl->set("NOPEERS", TRUE, TRUE);
 else
     $peerstpl->set("NOPEERS", FALSE, TRUE);

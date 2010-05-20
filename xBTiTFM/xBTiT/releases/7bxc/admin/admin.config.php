@@ -108,12 +108,14 @@ switch ($action)
         $btit_settings["last10limit"] = $_POST["last10limit"];
         $btit_settings["mostpoplimit"] = $_POST["mostpoplimit"];
 	$btit_settings["mindlratio"] = $_POST["mindlratio"];
+
         if (isset($_POST["mindlratio"]))
         {
             $res = do_sqlquery("SELECT `value` FROM `{$TABLE_PREFIX}settings` WHERE `key`='mindlratio'");
             if (mysql_num_rows($res) == 0)
                 do_sqlquery("INSERT INTO `{$TABLE_PREFIX}settings` SET `key`='mindlratio', `value`='".$_POST["mindlratio"]."'");
         }
+
         $btit_settings["imageon"] = $_POST["imageon"];
         $btit_settings["screenon"] = $_POST["screenon"];
         $btit_settings["uploaddir"] = $_POST["uploaddir"];
@@ -126,7 +128,6 @@ switch ($action)
         $btit_settings["irc_server"] = $_POST["irc_server"];
         $btit_settings["irc_port"] = $_POST["irc_port"];
         $btit_settings["irc_channel"] = $_POST["irc_channel"];
-
 
         if (isset($_POST["xbtt_use"]))
           {
@@ -153,7 +154,7 @@ switch ($action)
             }
             else
               {
-              $btit_settings["xbtt_use"] = isset($_POST["xbtt_use"])?"true":"false";
+              $btit_settings["xbtt_use"] = "true";
               $admintpl->set("xbtt_error", false, true);
               // save some settings into xbt_config table
               $xbt_cfg = "('anonymous_announce','anonymous_scrape','announce_interval','auto_register')";
@@ -188,11 +189,15 @@ switch ($action)
           }
           else
           {
-              $language["XBTT_TABLES_ERROR"]=$language["XBTT_URL_ERROR"];
+              $language["XBTT_TABLES_ERROR"] = $language["XBTT_URL_ERROR"];
               $btit_settings["xbtt_use"] = "false";
               $admintpl->set("xbtt_error", true, true);
           }
         }
+	  else
+		{
+	      $btit_settings["xbtt_use"]="false";
+		}
         $btit_settings["xbtt_url"] = $_POST["xbtt_url"];
         $btit_settings["cache_duration"] = $_POST["cache_duration"];
         $btit_settings["cut_name"] = intval($_POST["cut_name"]);
