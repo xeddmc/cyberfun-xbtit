@@ -378,9 +378,14 @@ if ($anq[0]['tp'] > 0)
 
 unset($anq);
 if ($XBTT_USE)
-   $anq = get_result("SELECT count(h.fid) as th FROM xbt_files_users h INNER JOIN xbt_files f ON h.fid=f.fid WHERE h.uid=$id AND h.completed=1",true,$btit_settings['cache_duration']);
+   $anq = get_result("SELECT count(*) as tp FROM xbt_files_users xfu WHERE active=1 AND uid=$id", true, $btit_settings['cache_duration']);
 else
-    $anq = get_result("SELECT count(h.infohash) as th FROM {$TABLE_PREFIX}history h INNER JOIN {$TABLE_PREFIX}files f ON h.infohash=f.info_hash WHERE h.uid=$id AND h.date IS NOT NULL",true,$btit_settings['cache_duration']);
+{
+  if ($PRIVATE_ANNOUNCE)
+      $anq = get_result("SELECT count(*) as tp FROM {$TABLE_PREFIX}peers p INNER JOIN {$TABLE_PREFIX}files f ON f.info_hash = p.infohash WHERE p.pid='".$row["pid"]."'", true, $btit_settings['cache_duration']);
+else
+      $anq = get_result("SELECT count(*) as tp FROM {$TABLE_PREFIX}peers p INNER JOIN {$TABLE_PREFIX}files f ON f.info_hash = p.infohash WHERE p.ip='".($row["cip"])."'", true, $btit_settings['cache_duration']);
+}
 
 $userdetailtpl->set("pagertophist", "");
 
