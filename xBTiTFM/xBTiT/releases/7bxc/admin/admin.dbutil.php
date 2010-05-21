@@ -71,13 +71,15 @@ switch($action)
                     case strtoupper($language['DBUTILS_CHECK']):
                         $dbres = do_sqlquery("CHECK TABLE $tables");
                         break;
+/*
                     case strtoupper($language['DBUTILS_DELETE']):
                         $dbres = do_sqlquery("DROP TABLE $tables");
                         header("Location: index.php?page=admin&user=".$CURUSER["uid"]."&code=".$CURUSER["random"]."&do=dbutil&action=status");
                         exit();
                         break;
+*/
                  }
-                 $t=array();
+                 $t = array();
                  while ($tstatus = mysql_fetch_array($dbres))
                       {
                          $t[$i]["table"] = $tstatus['Table'];
